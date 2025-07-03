@@ -1,0 +1,50 @@
+version: '3.8'
+
+services:
+  # PHP Apache service
+  php:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: php_dev
+    ports:
+      - "8080:80"
+    volumes:
+      - ./src:/var/www/html
+      - ./php.ini:/usr/local/etc/php/php.ini
+    depends_on:
+      - mysql
+    environment:
+      - DB_HOST=mysql
+      - DB_PORT=3306
+      - DB_NAME=dev_db
+      - DB_USER=dev_user
+      - DB_PASSWORD=dev_password
+    networks:
+      - dev_network
+
+  # MySQL service
+  mysql:
+    image: mysql:8.0
+    container_name: mysql_dev
+    restart: always
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: root_password
+      MYSQL_DATABASE: dev_db
+      MYSQL_USER: dev_user
+      MYSQL_PASSWORD: dev_password
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./mysql/init:/docker-entrypoint-initdb.d
+    networks:
+      - dev_network
+
+volumes:
+  mysql_data:
+    driver: local
+
+networks:
+  dev_network:
+    driver: bridge
